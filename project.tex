@@ -1,0 +1,173 @@
+
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+\usepackage{indentfirst}
+\setlength{\parindent}{0.8cm}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{url}
+
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    margin=2.5cm
+}
+
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definicja}{Definicja}[section]
+
+\theoremstyle{plain}
+\newtheorem{twierdzenie}{Twierdzenie}[section]
+\newtheorem{lemat}[twierdzenie]{Lemat}
+
+\theoremstyle{remark}
+\newtheorem{uwaga}{Uwaga}[section]
+
+\title{\textbf {\Huge{Projekt inżynierski}}\\ \vspace{3pt}
+    \Large{{Rozpoznawanie instrumentów muzycznych
+    \\ w utworach polifonicznych z wykorzystaniem sieci neuronowych}}}
+
+\author{
+    Kacper Haczkiewicz,
+    Wiktor Niedźwiedzki,
+    Dawid Skowroński
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Wprowadzenie}
+
+Niniejszy projekt inżynierski poświęcony jest problemowi klasyfikacji instrumentów muzycznych w utworach polifonicznych. W tego rodzaju utworach dźwięki pochodzące z różnych instrumentów mogą występować jednocześnie, co utrudnia ich prawidłową identyfikację. Do rozwiązania tego problemu można wykorzystać metody analizy sygnałów oraz metody uczenia maszynowego oparte na sieciach neuronowych.
+
+W projekcie wykorzystamy krótkoczasową transformatę Fouriera (STFT) do analizy sygnału audio i wyznaczenia spektrogramu melowego, który posłuży jako dane wejściowe dla konwolucyjnej sieci neuronowej. Na podstawie uzyskanych wyników ocenimy skuteczność zastosowanego rozwiązania.
+
+
+\section{Cel i zakres projektu}
+
+\subsection{Cel projektu}
+
+Celem projektu jest implementacja i ocena skuteczności konwolucyjnej sieci neuronowej (CNN) w rozpoznawaniu instrumentów muzycznych w utworach polifonicznych. W tym celu sygnał audio zostanie przekształcony z dziedziny czasu do reprezentacji czasowo-częstotliwościowej w postaci mel-spektrogramu z wykorzystaniem krótkoczasowej transformaty Fouriera (STFT). Tak przygotowane dane zostaną wykorzystane do trenowania i testowania modelu.
+
+\subsection{Zakres projektu}
+
+Tu napiszemy, jak bardziej będzie wiadomo co i jak (chyba że wiecie jak to lepiej napisać to napiszćie)
+
+\newpage
+
+\section{Podstawy teoretyczne}
+
+\subsection{Sygnał audio i jego reprezentacja cyfrowa}
+
+
+Jak podaje Zieliński \cite{zielinski2005}, sygnał można rozumieć jako zmienność wielkości fizycznej, którą opisuje się za pomocą funkcji. W przypadku dźwięku jest to zmiana ciśnienia akustycznego w czasie. Podczas nagrywania mikrofon przekształca falę akustyczną w sygnał elektryczny, który może zostać zapisany i poddany dalszej analizie.
+
+Komputer przetwarza dźwięk w postaci cyfrowej, reprezentowanej przez ciąg próbek, czyli wartości sygnału pobrane w określonych chwilach czasu. Proces ten obejmuje próbkowanie oraz kwantyzację. Próbkowanie polega na pobieraniu kolejnych wartości sygnału, natomiast kwantyzacja przyporządkowuje im określone poziomy amplitudy \cite{zielinski2005,oppenheim2010}.
+
+Liczbę próbek pobieranych w ciągu sekundy określa częstotliwość próbkowania $f_s$, wyrażana w hercach (Hz). Jest ona odwrotnością okresu próbkowania $T_s$:
+
+\begin{equation}
+    f_s = \frac{1}{T_s}.
+\end{equation}
+
+Odpowiedni dobór częstotliwości próbkowania pozwala zachować informacje o składowych częstotliwościowych sygnału. Zbyt niska częstotliwość może prowadzić do aliasingu, czyli błędnego odwzorowania składowych widma. Aby ograniczyć to zjawisko, w procesie konwersji analogowo-cyfrowej stosuje się filtr antyaliasingowy \cite{zielinski2005, oppenheim2010}.
+
+\subsection{Analiza częstotliwościowa sygnałów}
+
+Analiza częstotliwościowa umożliwia opisanie sygnału poprzez jego składowe częstotliwościowe. Jej podstawą jest rozkład sygnału na funkcje harmoniczne (\textit{funkcje sinusoidalne}), który pozwala określić, jakie częstotliwości występują w sygnale oraz jaki jest ich udział \cite{zielinski2005,oppenheim2010}.
+
+\textbf{Sygnał} można traktować jako element odpowiedniej przestrzeni matematycznej. W przypadku cyfrowego nagrania skończony fragment sygnału jest wektorem próbek $x[n]$. Jego normę euklidesową definiuje się jako:
+
+\begin{equation}
+    \|x\|_2 =
+    \sqrt{\sum_{n=0}^{N-1}|x[n]|^2},
+\end{equation}
+
+gdzie $N$ oznacza liczbę próbek. Norma pozwala określić wielkość sygnału, natomiast iloczyn skalarny umożliwia opisywanie zależności pomiędzy sygnałami. Pojęcia te są wykorzystywane w analizie funkcji ortogonalnych i rozwinięć Fouriera. Dla nieskończonych ciągów o sumowalnym kwadracie modułu analogiczną konstrukcję stanowi przestrzeń $\ell^2$ \cite{zielinski2005}.
+
+\textbf{Dyskretna transformata Fouriera} (DFT) przekształca skończony ciąg próbek w zestaw współczynników opisujących jego składowe częstotliwościowe. Definiuje się ją wzorem:
+
+\begin{equation}
+    X[k] = \sum_{n=0}^{N-1}
+    x[n]e^{-j\frac{2\pi}{N}kn},
+    \quad k=0,\ldots,N-1,
+\end{equation}
+
+gdzie $x[n]$ oznacza próbki sygnału, a $X[k]$ jest zespolonym współczynnikiem odpowiadającym indeksowi częstotliwościowemu $k$. Moduł współczynnika opisuje poziom danej składowej, natomiast jego argument określa fazę. Częstotliwość odpowiadającą indeksowi $k$ wyznacza zależność:
+
+\begin{equation}
+    f_k = \frac{k f_s}{N},
+\end{equation}
+
+gdzie $f_s$ oznacza częstotliwość próbkowania. Szybka transformata Fouriera (FFT) jest rodziną algorytmów umożliwiających efektywne obliczanie DFT \cite{oppenheim2010}.
+
+\textbf{Widmo amplitudowe} przedstawia moduły współczynników DFT, natomiast widmo mocy jest związane z kwadratami ich modułów. Obie reprezentacje pozwalają analizować rozkład składowych częstotliwościowych sygnału. Ponieważ dźwięk może zmieniać się w czasie, analizę często przeprowadza się dla kolejnych fragmentów sygnału. Służy do tego krótkoczasowa transformata Fouriera (STFT), w której każdy fragment jest analizowany osobno, zwykle po przemnożeniu go przez funkcję okna ograniczającą efekty wynikające z jego odcięcia.
+
+Wyniki STFT można przedstawić w postaci \textbf{spektrogramu}, czyli reprezentacji pokazującej zmiany zawartości częstotliwościowej sygnału w czasie.
+
+\subsection{Skala melowa i mel-spektrogram}
+
+Skala melowa jest nieliniową skalą częstotliwości, zaprojektowaną w celu przybliżenia sposobu, w jaki człowiek postrzega wysokość dźwięku. W skali tej częstotliwości niższe są rozróżniane z większą dokładnością niż częstotliwości wyższe. Przeliczenie częstotliwości wyrażonej w hercach na skalę melową opisuje zależność \cite{fayek2016}:
+
+\begin{equation}
+    m(f) = 2595 \log_{10}\left(1+\frac{f}{700}\right),
+\end{equation}
+gdzie $f$ oznacza częstotliwość w hercach, a $m(f)$ jej wartość w melach.
+
+Mel-spektrogram otrzymuje się przez zastosowanie banku filtrów melowych do widma mocy kolejnych ramek sygnału. Bank składa się z filtrów trójkątnych rozmieszczonych równomiernie w skali melowej. Każdy filtr przypisuje prążkom widma wagi zależne od ich położenia, a następnie agreguje ich wartości w obrębie danego pasma \cite{fayek2016}.
+
+Wartość $m$-tego pasma dla ramki $t$ można zapisać jako:
+
+\begin{equation}
+    S_m[t] = \sum_{k=0}^{K-1} H_m[k]P_t[k],
+\end{equation}
+
+gdzie $P_t[k]$ oznacza wartość widma mocy dla $k$-tego prążka w ramce $t$, natomiast $H_m[k]$ jest wagą $m$-tego filtru melowego. Otrzymana macierz $S_m[t]$ przedstawia rozkład energii w pasmach melowych w kolejnych chwilach czasu. Jej wizualizacją jest mel-spektrogram, w którym osie odpowiadają czasowi i częstotliwości w skali melowej, a kolor reprezentuje wartość sygnału w danym paśmie.
+
+\newpage
+\section*{Bibliografia}
+\addcontentsline{toc}{section}{Bibliografia}
+
+\begin{thebibliography}{9}
+
+\bibitem{zielinski2005}
+T.~P. Zieliński,
+\textit{Cyfrowe przetwarzanie sygnałów: od teorii do zastosowań}.
+Warszawa: Wydawnictwa Komunikacji i Łączności, 2005.
+
+\bibitem{oppenheim2010}
+A.~V. Oppenheim i R.~W. Schafer,
+\textit{Discrete-Time Signal Processing},
+wyd. 3. Pearson, 2010.
+
+\bibitem{fayek2016}
+H. M. Fayek, \textit{Speech Processing for Machine Learning: Filter banks, Mel-Frequency Cepstral Coefficients (MFCCs) and What's In-Between}, 2016.
+Dostęp: \url{https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html}
+
+\end{thebibliography}
+
+\end{document}
