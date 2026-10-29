@@ -1,4 +1,4 @@
-# Projekt inżynierski: *Rozpoznawanie instrumentów muzycznych w utworach polifonicznych za pomocą sieci neuronowej*
+# Projekt inżynierski: *Rozpoznawanie instrumentów muzycznych w utworach polifonicznych z wykorzystaniem sieci neuronowych*.
 
 ### PL
 
