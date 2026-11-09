@@ -15,16 +15,7 @@ def get_device():
     return device
 
 # Trening modelu
-def train_model(
-    model,
-    train_loader,
-    val_loader,
-    criterion,
-    optimizer,
-    device,
-    epochs=100,
-    patience=10
-):
+def train_model(model, train_loader, val_loader, criterion, optimizer, device, epochs=100, patience=10):
     best_epoch = 0
     best_val_loss = float("inf")
     epochs_without_improvement = 0

@@ -76,13 +76,7 @@ def create_datasets():
 
 
 # Utworzenie DataLoaderów
-def create_loaders(
-    train_dataset,
-    val_dataset,
-    test_dataset,
-    batch_size=8,
-    seed=6709
-):
+def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=8, seed=6709):
     generator = torch.Generator()
     generator.manual_seed(seed)
 
