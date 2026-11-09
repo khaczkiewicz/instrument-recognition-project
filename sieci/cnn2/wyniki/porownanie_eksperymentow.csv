@@ -1,0 +1,2 @@
+Model,Batch size,Learning rate,Dropout 2,Dropout 3,Threshold,Best epoch,Best val loss,Micro-F1,Macro-F1,Training time [min]
+CNN2,8,0.0005,0.1,0.3,0.8,3,0.4505121287497107,0.5121885882668096,0.4166449218643131,10.498718344449298
