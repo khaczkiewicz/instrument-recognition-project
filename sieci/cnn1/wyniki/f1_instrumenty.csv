@@ -1,0 +1,8 @@
+Batch size,Learning rate,Dropout 2,Dropout 3,Instrument,F1-score
+16,0.001,0.2,0.5,Gitara akustyczna,0.6574225122349103
+16,0.001,0.2,0.5,Saksofon altowy,0.0
+16,0.001,0.2,0.5,Fortepian,0.0
+16,0.001,0.2,0.5,Perkusja,0.0
+16,0.001,0.2,0.5,Gitara basowa,0.6672064777327935
+16,0.001,0.2,0.5,Flet,0.0
+16,0.001,0.2,0.5,Sekcja smyczkowa,0.0
