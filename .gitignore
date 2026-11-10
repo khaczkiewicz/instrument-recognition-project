@@ -1,0 +1,13 @@
+# Środowisko wirtualne Pythona
+venv/
+.venv/
+env/
+
+# Pamięć podręczna kompilatora i notatników
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Dane i pliki binarne
+spectrograms/
+*.npy
