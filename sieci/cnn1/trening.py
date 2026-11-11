@@ -15,7 +15,7 @@ def get_device():
     return device
 
 # Trening modelu
-def train_model(model, train_loader, val_loader, criterion, optimizer, device, epochs=100, patience=10):
+def train_model(model,train_loader,val_loader,criterion,optimizer,device,epochs=100,patience=10,model_name="model_weights.pth"):
     best_epoch = 0
     best_val_loss = float("inf")
     epochs_without_improvement = 0
@@ -90,11 +90,14 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
 
     model.load_state_dict(best_model)
 
-    # Zapisanie najlepszych wag
+    # Zapisanie najlepszych wag pod unikalną nazwą eksperymentu
     results_dir = Path(__file__).resolve().parent / "wyniki"
     results_dir.mkdir(parents=True, exist_ok=True)
-
-    torch.save(model.state_dict(), results_dir / "model_weights.pth")
+    
+    model_path = results_dir / model_name
+    torch.save(model.state_dict(), model_path)
+    
+    print(f"Zapisano wagi modelu: {model_path}")
 
     print(f"Najlepsza epoka: {best_epoch}")
     print(f"Najlepszy validation loss: {best_val_loss:.4f}")
