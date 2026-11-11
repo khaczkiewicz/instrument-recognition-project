@@ -1,0 +1,2 @@
+Learning_ID,Model,Batch size,Learning rate,Dropout 2,Dropout 3,Threshold,Best epoch,Best val loss,Micro-F1,Macro-F1,Training time [min]
+CNN2_batch32_lr0.001_dr0.1_0.3,CNN2,32,0.001,0.1,0.3,0.8,86,0.20224603201247943,0.8862251523324344,0.8698586871709292,140.00942630999876
