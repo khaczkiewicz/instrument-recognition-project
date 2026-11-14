@@ -5,7 +5,8 @@ configs = [
     {"n_mel_banks": 128, "frame_length": 1024, "step_length": 512},
     {"n_mel_banks": 80, "frame_length": 2048, "step_length": 512},
     {"n_mel_banks": 128, "frame_length": 2048, "step_length": 512},
-    {"n_mel_banks": 128, "frame_length": 2048, "step_length": 1024}
+    {"n_mel_banks": 128, "frame_length": 2048, "step_length": 1024},
+    {"n_mel_banks": 128, "frame_length": 4096, "step_length": 1024}
 ]
 
 for config in configs:
