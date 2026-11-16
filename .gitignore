@@ -22,6 +22,9 @@ data_preparation/metadata
 data_preparation/clean_sounds
 data_preparation/generated_segments
 data_preparation/instrumenty.csv
+data_preparation/generated_combinations
+data_preparation/noisy_sounds
+data_preparation/dataset
 
 # Katalogi danych – wszystkie poziomy zagnieżdżenia
 data/slakh/**/

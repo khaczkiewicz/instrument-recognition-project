@@ -1,0 +1,8 @@
+stage,signature
+metadata,'metadata'
+sounds,"(('Acoustic Guitar (steel)', 'Alto Sax', 'Bright Acoustic Piano', 'Drums', 'Electric Bass (finger)', 'Flute', 'String Ensemble 1'),)"
+instruments_csv,"('Acoustic Guitar (steel)', 'Alto Sax', 'Bright Acoustic Piano', 'Drums', 'Electric Bass (finger)', 'Flute', 'String Ensemble 1')"
+segments,"(('Acoustic Guitar (steel)', 'Alto Sax', 'Bright Acoustic Piano', 'Drums', 'Electric Bass (finger)', 'Flute', 'String Ensemble 1'), 4.0, 0.05)"
+combinations,"(('Acoustic Guitar (steel)', 'Alto Sax', 'Bright Acoustic Piano', 'Drums', 'Electric Bass (finger)', 'Flute', 'String Ensemble 1'), 100)"
+dataset,"(0.7, 0.15, 0.15)"
+noise,"(0.1,)"

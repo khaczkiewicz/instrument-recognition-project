@@ -51,6 +51,5 @@ def main():
         if labels_file.exists():
             shutil.copy2(labels_file, output_dir / "etykiety.csv")
 
-
 if __name__ == "__main__":
     main()
