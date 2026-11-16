@@ -1,0 +1,3 @@
+﻿configuration;SELECTED_INSTRUMENTS;SEGMENT_LENGTH;ENERGY_THRESHOLD;NOISE_LEVEL;TARGET_PER_CATEGORY;TRAIN_RATIO;VALIDATION_RATIO;TEST_RATIO
+1;Drums|Acoustic Guitar (steel)|String Ensemble 1|Electric Bass (finger)|Bright Acoustic Piano|Alto Sax|Flute;4.0;0.05;0;100;0.70;0.15;0.15
+2;Drums|Acoustic Guitar (steel)|String Ensemble 1|Electric Bass (finger)|Bright Acoustic Piano|Alto Sax|Flute;4.0;0.05;0.5;100;0.70;0.15;0.15

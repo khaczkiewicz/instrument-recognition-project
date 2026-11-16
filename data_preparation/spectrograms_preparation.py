@@ -235,12 +235,9 @@ def generate_spectrograms_from_dataset(dataset_dir,
 
     """Przetwarza katalogi plików .wav i .flac na spektrogramy .npy"""
 
-    # Stworzenie folderu (nazwa to parametry spektrogramu)
-    spectrogram_params_folder_name = (f'mels{n_mel_banks}_frame{frame_length}_step{step_length}_window{window_type}_sr{sample_rate}_{int(expected_duration)}s')
-
     dataset_path = Path(dataset_dir)
 
-    output_path = Path(output_dir)/spectrogram_params_folder_name
+    output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
     expected_num_of_samples = int(sample_rate*expected_duration)

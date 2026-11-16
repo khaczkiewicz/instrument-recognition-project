@@ -4,10 +4,25 @@ venv/
 env/
 
 # Pamięć podręczna kompilatora i notatników
-__pycache__/
+**/__pycache__/
 *.pyc
 .ipynb_checkpoints/
 
 # Dane i pliki binarne
 spectrograms/
 *.npy
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Zbiory danych do przygotowania danych
+data_preparation/slakh2100_flac_redux.tar.gz
+data_preparation/metadata
+data_preparation/clean_sounds
+data_preparation/generated_segments
+data_preparation/instrumenty.csv
+
+# Katalogi danych – wszystkie poziomy zagnieżdżenia
+data/slakh/**/
+spectrograms/**/
