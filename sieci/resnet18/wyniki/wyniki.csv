@@ -1,0 +1,2 @@
+Learning_ID,Dataset,Model,Batch size,Learning rate,Dropout,Best epoch,Best val loss,Training time [min],Best Micro F1,Best Micro threshold,Best Macro F1,Best Macro threshold
+1,1_1,resnet18,32,0.0001,0.5,1,0.2523352941644206,0.7714642633334734,0.8901453957996769,0.43514783681435454,0.8877825955977393,0.42330919695300917
