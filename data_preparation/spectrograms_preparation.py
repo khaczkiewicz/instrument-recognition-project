@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
+import shutil
 
 import pandas as pd
 import numpy as np
 import soundfile as sf
 
 from tqdm import tqdm
-
 
 #======================================#
 # Funkcje do konstrukcji spektrogramów #
@@ -333,13 +333,13 @@ def generate_spectrograms_from_dataset(dataset_dir,
         except Exception as error_log:
             excluded_files.append( (str(file_path), str(error_log)) )
 
-    # Zapis metadanych do csv
-    df_meta = pd.DataFrame(metadata)
-    csv_file_path = output_path/ 'metadata.csv'
-    df_meta.to_csv(csv_file_path, index=False)
+    # Skopiowanie pliku etykiety.csv
+    shutil.copy2(
+        dataset_path / "etykiety.csv",
+        output_path / "etykiety.csv"
+    )
 
     print("## Koniec ##")
-    print(f"Zapisano {len(df_meta)} spektrogramów oraz plik csv.")
 
     if excluded_files:
         print(f'UWAGA: pominięto {len(excluded_files)} plików')
