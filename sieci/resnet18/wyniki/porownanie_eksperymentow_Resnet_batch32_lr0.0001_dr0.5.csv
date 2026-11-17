@@ -1,0 +1,2 @@
+Learning_ID,Model,Batch size,Learning rate,Dropout,Threshold,Best epoch,Best val loss,Micro-F1,Macro-F1,Training time [min]
+Resnet_batch32_lr0.0001_dr0.5,Resnet18,32,0.0001,0.5,0.8,14,0.13685903330620006,0.9444703686420906,0.9430941896473364,14.266083303333046
