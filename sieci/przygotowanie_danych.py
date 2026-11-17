@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 # wczytanie danych
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPECTROGRAMS = (
-    PROJECT_ROOT / "spectrograms" / "mels80_frame1024_step512_windowhann_sr44100_4s"
+    PROJECT_ROOT / "spectrograms" / "1_1"
 )
 LABELS = SPECTROGRAMS / "etykiety.csv"
 
@@ -56,7 +56,7 @@ class InstrumentDataset(Dataset):
         sciezka = self.root / self.zbior / nazwa_pliku
 
         spec = np.load(sciezka)
-        spec = torch.tensor(spec, dtype=torch.float32).unsqueeze(0)
+        spec = torch.from_numpy(spec).float().unsqueeze(0)
 
         label = row[list(INSTRUMENTS.keys())].to_numpy(dtype=np.float32)
         label = torch.tensor(label, dtype=torch.float32)
@@ -76,7 +76,7 @@ def create_datasets():
 
 
 # Utworzenie DataLoaderów
-def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=8, seed=6709):
+def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=32, seed=6709):
     generator = torch.Generator()
     generator.manual_seed(seed)
 
@@ -84,19 +84,32 @@ def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=8, seed=
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        generator=generator
+        generator=generator,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2
     )
 
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
-        shuffle=False
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2
     )
 
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
-        shuffle=False
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2
     )
 
     return train_loader, val_loader, test_loader
+

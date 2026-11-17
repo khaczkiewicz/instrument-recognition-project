@@ -21,8 +21,6 @@ def main():
         dataset_dir = DATA_BASE_DIR / data_id
         output_dir = OUTPUT_BASE_DIR / f"{data_id}_{configuration_id}"
 
-
-
         prep.generate_spectrograms_from_dataset(
             dataset_dir=dataset_dir,
             output_dir=output_dir,
@@ -33,7 +31,6 @@ def main():
             frame_length=int(row["frame_length"]),
             step_length=int(row["step_length"]),
         )
-
 
 if __name__ == "__main__":
     main()
