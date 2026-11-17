@@ -1,5 +1,3 @@
-
-# biblioteki
 import torch
 import numpy as np
 import pandas as pd
@@ -7,19 +5,15 @@ import pandas as pd
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 
-
 # wczytanie danych
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SPECTROGRAMS = (
-    PROJECT_ROOT / "spectrograms" / "1_1"
-)
-LABELS = SPECTROGRAMS / "etykiety.csv"
 
 
-def load_data():
-    data = pd.read_csv(LABELS)
+def load_data(spectrograms):
+    labels = spectrograms / "etykiety.csv"
+    data = pd.read_csv(labels)
     return data
-
 
 INSTRUMENTS = {
     "Acoustic Guitar (steel)": "Gitara akustyczna",
@@ -30,7 +24,6 @@ INSTRUMENTS = {
     "Flute": "Flet",
     "String Ensemble 1": "Sekcja smyczkowa"
 }
-
 
 class InstrumentDataset(Dataset):
     """
@@ -63,17 +56,16 @@ class InstrumentDataset(Dataset):
 
         return spec, label
 
-
 # Utworzenie zbiorów danych
-def create_datasets():
-    data = load_data()
+def create_datasets(dataset):
+    spectrograms = PROJECT_ROOT / "spectrograms" / dataset
+    data = load_data(spectrograms)
 
-    train_dataset = InstrumentDataset(data, SPECTROGRAMS, "train")
-    val_dataset = InstrumentDataset(data, SPECTROGRAMS, "validation")
-    test_dataset = InstrumentDataset(data, SPECTROGRAMS, "test")
+    train_dataset = InstrumentDataset(data, spectrograms, "train")
+    val_dataset = InstrumentDataset(data, spectrograms, "validation")
+    test_dataset = InstrumentDataset(data, spectrograms, "test")
 
     return train_dataset, val_dataset, test_dataset
-
 
 # Utworzenie DataLoaderów
 def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=32, seed=6709):
@@ -112,4 +104,3 @@ def create_loaders(train_dataset, val_dataset, test_dataset, batch_size=32, seed
     )
 
     return train_loader, val_loader, test_loader
-
