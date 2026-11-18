@@ -1,10 +1,9 @@
-
 import torch
+import torch.nn as nn
 from pathlib import Path
 from copy import deepcopy
 
-
-# Wybór urządzenia obliczeniowego.
+# Wybór urządzenia
 def get_device():
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -15,15 +14,8 @@ def get_device():
 
     return device
 
-
-# Trening modelu wraz z walidacją i early stopping.
-def train_model(model, train_loader, val_loader, criterion, optimizer, device, epochs=100, patience=10, model_name="model_weights.pth"):
-    if epochs < 1:
-        raise ValueError("Liczba epok musi być większa od zera.")
-
-    if patience < 1:
-        raise ValueError("Patience musi być większe od zera.")
-
+# Trening modelu
+def train_model(model,train_loader,val_loader,criterion,optimizer,device,epochs=100,patience=10,model_name="model_weights.pth"):
     best_epoch = 0
     best_val_loss = float("inf")
     epochs_without_improvement = 0
@@ -36,7 +28,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
         model.train()
         train_loss = 0.0
 
-        # Pętla treningowa.
+        # Pętla treningowa
         for X, y in train_loader:
             X = X.to(device)
             y = y.to(device)
@@ -53,7 +45,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
 
         train_loss /= len(train_loader.dataset)
 
-        # Walidacja modelu.
+        # Walidacja modelu
         model.eval()
         val_loss = 0.0
 
@@ -78,7 +70,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
             f"Val loss: {val_loss:.4f}"
         )
 
-        # Zapisanie najlepszych wag na podstawie validation loss.
+        # Sprawdzenie poprawy wyniku walidacji
         if val_loss < best_val_loss:
             best_epoch = epoch + 1
             best_val_loss = val_loss
@@ -87,25 +79,25 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
         else:
             epochs_without_improvement += 1
 
-        # Early stopping.
+        # Early stopping
         if epochs_without_improvement >= patience:
             print(f"Brak poprawy przez {patience} epok.")
             break
 
-    # Przywrócenie najlepszych wag modelu.
+    # Przywrócenie najlepszych wag modelu
     if best_model is None:
         raise RuntimeError("Trening nie zakończył się poprawnie.")
 
     model.load_state_dict(best_model)
 
-    # Zapisanie wag w folderze wyników.
+    # Zapisanie najlepszych wag pod unikalną nazwą eksperymentu
     results_dir = Path(__file__).resolve().parent / "wyniki"
     results_dir.mkdir(parents=True, exist_ok=True)
-
-    torch.save(
-        model.state_dict(),
-        results_dir / model_name
-    )
+    
+    model_path = results_dir / model_name
+    torch.save(model.state_dict(), model_path)
+    
+    print(f"Zapisano wagi modelu: {model_path}")
 
     print(f"Najlepsza epoka: {best_epoch}")
     print(f"Najlepszy validation loss: {best_val_loss:.4f}")

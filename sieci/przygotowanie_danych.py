@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 import pandas as pd
@@ -6,8 +7,28 @@ from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 
 # wczytanie danych
+def get_spectrograms_dir(dataset):
+    env_path = os.getenv("SPECTROGRAMS_DIR")
+    if env_path:
+        path = Path(env_path) / str(dataset)
+        if path.exists():
+            return path
+        raise FileNotFoundError(f"Brak danych w SPECTROGRAMS_DIR: {path}")
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    candidates = [
+        Path(r"D:\spectrograms"),
+        Path(__file__).resolve().parents[1] / "spectrograms",
+    ]
+    for root in candidates:
+        path = root / str(dataset)
+        if path.exists():
+            return path
+        
+    raise FileNotFoundError(
+        f"Nie znaleziono datasetu '{dataset}' w żadnej z lokalizacji: {candidates}"
+    )
+
+#PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_data(spectrograms):
@@ -57,8 +78,14 @@ class InstrumentDataset(Dataset):
         return spec, label
 
 # Utworzenie zbiorów danych
-def create_datasets(dataset):
-    spectrograms = PROJECT_ROOT / "spectrograms" / dataset
+def create_datasets(dataset, spectrograms_root=None):
+    
+    if spectrograms_root is not None:
+        spectrograms = Path(spectrograms_root) / str(dataset)
+    else:
+        spectrograms = get_spectrograms_dir(dataset)
+
+    print(f"Wczytuję spektrogramy z: {spectrograms}")
     data = load_data(spectrograms)
 
     train_dataset = InstrumentDataset(data, spectrograms, "train")
