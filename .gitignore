@@ -8,10 +8,6 @@ env/
 *.pyc
 .ipynb_checkpoints/
 
-# Dane i pliki binarne
-spectrograms/
-*.npy
-
 # macOS
 .DS_Store
 **/.DS_Store
