@@ -1,0 +1,2 @@
+Learning_ID,Dataset,Model,Batch size,Learning rate,Dropout 2,Dropout 3,Best epoch,Best val loss,Training time [min],Best Micro F1 (validation),Best Micro threshold,Best Macro F1 (validation),Best Macro threshold,Test Micro F1 (Macro threshold),Test Macro F1 (Macro threshold),Test Micro F1 (Micro threshold),Test Macro F1 (Micro threshold)
+1,1_1,CNN2,8,0.001,0.1,0.3,98,0.2023131522036576,175.50057693666702,0.9194876486733761,0.48300000000000004,0.9160212107334266,0.4830000000000001,0.9176556509037794,0.913409972177066,0.9176556509037794,0.913409972177066
