@@ -1,28 +1,19 @@
+
 import torch
 import torch.nn as nn
 from torchvision import models
 
-
 class Resnet(nn.Module):
-    """
-    Pojedyncza sieć ResNet18 rozpoznająca jednocześnie
-    obecność 7 instrumentów na podstawie log-mel spektrogramu.
 
-    Wejście:
-        (batch_size, 1, 80, czas)
-
-    Wyjście:
-        (batch_size, 7)
-    """
-
-    def __init__(self, dropout=0.3):
+    def __init__(self, dropout=0.3, weights_type="default", weights_path=None):
         super().__init__()
 
-        # ResNet bez wag pretrenowanych
-        #self.model = models.resnet18(weights=None)
-
-        # ResNet18 z wagami pretrenowanymi na ImageNet
-        self.model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        if weights_type == "default":
+            self.model = models.resnet18(
+                weights=models.ResNet18_Weights.DEFAULT
+            )
+        else:
+            self.model = models.resnet18(weights=None)
 
         # Zmiana pierwszej warstwy na wejście jednokanałowe
         self.model.conv1 = nn.Conv2d(
@@ -36,11 +27,20 @@ class Resnet(nn.Module):
 
         # Zmiana warstwy wyjściowej na 7 instrumentów
         in_features = self.model.fc.in_features
-
         self.model.fc = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(in_features, 7)
         )
+
+        if weights_type == "custom":
+            checkpoint = torch.load(weights_path, map_location="cpu")
+
+            checkpoint = {
+                key.replace("model.", "", 1): value
+                for key, value in checkpoint.items()
+            }
+
+            self.model.load_state_dict(checkpoint)
 
     def forward(self, x):
         return self.model(x)
