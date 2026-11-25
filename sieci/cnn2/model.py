@@ -1,15 +1,15 @@
-
 import torch
 import torch.nn as nn
 
-
 class InstrumentCNN(nn.Module):
-    """
-    Pojedyncza sieć CNN rozpoznająca obecność jednego instrumentu.
-    Architektura taka sama jak CNN1.
-    """
 
-    def __init__(self, dropout2=0.1, dropout3=0.3):
+    def __init__(
+        self,
+        dropout2=0.1,
+        dropout3=0.3,
+        weights_type="default",
+        weights_path=None
+    ):
         super().__init__()
 
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
@@ -23,8 +23,11 @@ class InstrumentCNN(nn.Module):
 
         self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
-        # Jedno wyjście dla jednego instrumentu.
         self.output = nn.Linear(128, 1)
+
+        if weights_type == "custom":
+            checkpoint = torch.load(weights_path, map_location="cpu")
+            self.load_state_dict(checkpoint)
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
@@ -42,23 +45,29 @@ class InstrumentCNN(nn.Module):
 
         return self.output(x)
 
-
 class MultiInstrumentCNN(nn.Module):
-    """
-    Model składający się z niezależnych sieci CNN.
-    Każda sieć odpowiada za jeden instrument.
-    """
 
-    def __init__(self, num_instruments, dropout2=0.1, dropout3=0.3):
+    def __init__(
+        self,
+        num_instruments,
+        dropout2=0.1,
+        dropout3=0.3,
+        weights_type="default",
+        weights_path=None
+    ):
         super().__init__()
 
         self.models = nn.ModuleList([
-            InstrumentCNN(dropout2, dropout3)
+            InstrumentCNN(
+                dropout2,
+                dropout3,
+                weights_type,
+                weights_path
+            )
             for _ in range(num_instruments)
         ])
 
     def forward(self, x):
         outputs = [model(x) for model in self.models]
 
-        # Połączenie wyników wszystkich podmodeli.
         return torch.cat(outputs, dim=1)

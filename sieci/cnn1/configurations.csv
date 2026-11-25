@@ -2,7 +2,6 @@ dataset;model_name;epochs;patience;batch_size;learning_rate;dropout2;dropout3;we
 1_3;CNN1;100;10;16;0.0001;0.1;0.1;default;
 1_3;CNN1;100;10;16;0.001;0.1;0.1;default;
 1_3;CNN1;100;10;16;0.01;0.1;0.1;default;
-1_3;CNN1;100;10;16;0.001;0.1;0.1;default;
 1_3;CNN1;100;10;16;0.001;0.2;0.1;default;
 1_3;CNN1;100;10;16;0.001;0.3;0.1;default;
 1_3;CNN1;100;10;16;0.001;0.1;0.1;default;
