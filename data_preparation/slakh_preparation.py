@@ -118,10 +118,10 @@ def find_matched_tracks(metadata_files):
     return matched_tracks
 
 
-# 3. Kopiowanie wybranych plików FLAC
+# 3. Ekstrakcja wybranych plików FLAC
 
 def copy_selected_audio(matched_tracks):
-    print("Rozpoczęto kopiowanie plików.")
+    print("Rozpoczęto ekstrakcję plików.")
 
     targets = {}
 
@@ -180,13 +180,6 @@ def copy_selected_audio(matched_tracks):
                     shutil.copyfileobj(source, destination)
 
                 found.add(key)
-
-                percent = len(found) / len(targets) * 100
-
-                print(
-                    f"POSTĘP: {len(found)}/{len(targets)} "
-                    f"({percent:.1f}%) | {instrument}"
-                )
 
     print("Zakończono ekstrakcję plików.")
 
@@ -462,16 +455,82 @@ def create_generation_plan():
 
     COMBINATIONS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Zbierz fragmenty źródłowe dla każdej kombinacji instrumentów.
-    examples_by_combo = defaultdict(list)
+    # Proporcje zbiorów
+    ratios = {
+        "train": TRAIN_RATIO,
+        "validation": VALIDATION_RATIO,
+        "test": TEST_RATIO,
+    }
 
+    if any(value < 0 for value in ratios.values()):
+        raise ValueError("Proporcje nie mogą być ujemne.")
+
+    if not np.isclose(sum(ratios.values()), 1.0):
+        raise ValueError("Suma proporcji musi wynosić 1.0.")
+
+    # Pobranie wszystkich dostępnych utworów
     track_dirs = sorted(
         path for path in SEGMENTS_DIR.iterdir()
         if path.is_dir() and path.name.startswith("Track")
     )
 
+    track_names = [path.name for path in track_dirs]
+
+    # Losowanie utworów, a nie pojedynczych fragmentów
+    random.shuffle(track_names)
+
+    # Obliczenie liczby utworów przypadających na każdy zbiór
+    exact_counts = {
+        name: len(track_names) * ratio
+        for name, ratio in ratios.items()
+    }
+
+    track_counts = {
+        name: int(np.floor(count))
+        for name, count in exact_counts.items()
+    }
+
+    remainder = len(track_names) - sum(track_counts.values())
+
+    remainder_order = sorted(
+        ratios,
+        key=lambda name: exact_counts[name] - track_counts[name],
+        reverse=True,
+    )
+
+    for name in remainder_order[:remainder]:
+        track_counts[name] += 1
+
+    # Przypisanie każdego utworu do konkretnego zbioru
+    track_to_dataset = {}
+
+    offset = 0
+
+    for dataset_name in ("train", "validation", "test"):
+        count = track_counts[dataset_name]
+
+        for track_name in track_names[offset:offset + count]:
+            track_to_dataset[track_name] = dataset_name
+
+        offset += count
+
+    print("Podział utworów:")
+
+    for dataset_name in ("train", "validation", "test"):
+        count = sum(
+            split == dataset_name
+            for split in track_to_dataset.values()
+        )
+        print(f"{dataset_name}: {count} utworów")
+
+    # Zbieranie fragmentów z uwzględnieniem przynależności utworu
+    examples_by_combo = defaultdict(
+        lambda: defaultdict(list)
+    )
+
     for track_dir in track_dirs:
         track_name = track_dir.name
+        dataset_name = track_to_dataset[track_name]
 
         segment_dirs = sorted(
             (
@@ -497,7 +556,7 @@ def create_generation_plan():
             # Każdy niepusty podzbiór obecnych instrumentów.
             for size in range(1, len(present_instruments) + 1):
                 for combo in combinations(present_instruments, size):
-                    examples_by_combo[combo].append({
+                    examples_by_combo[combo][dataset_name].append({
                         "track_name": track_name,
                         "segment_start_s": segment_start_s,
                         "source_files": [
@@ -521,30 +580,65 @@ def create_generation_plan():
     })
 
     for combo in sorted(examples_by_combo, key=lambda c: (len(c), c)):
-        # Deduplikacja po utworze i sekundzie początku.
-        unique_examples = {}
 
-        for example in examples_by_combo[combo]:
-            key = (
-                example["track_name"],
-                example["segment_start_s"],
+        selected_by_split = {}
+
+        # Rozdzielenie docelowej liczby przykładów
+        # proporcjonalnie pomiędzy zbiory
+        desired_counts = {
+            "train": int(round(TARGET_PER_CATEGORY * TRAIN_RATIO)),
+            "validation": int(round(TARGET_PER_CATEGORY * VALIDATION_RATIO)),
+            "test": int(round(TARGET_PER_CATEGORY * TEST_RATIO)),
+        }
+
+        # Korekta zaokrągleń
+        difference = TARGET_PER_CATEGORY - sum(desired_counts.values())
+
+        if difference:
+            largest_split = max(
+                desired_counts,
+                key=lambda name: ratios[name]
             )
-            unique_examples[key] = example
+            desired_counts[largest_split] += difference
 
-        examples = list(unique_examples.values())
-        random.shuffle(examples)
+        available_count = 0
+        for dataset_name in ("train", "validation", "test"):
 
-        selected_examples = examples[:TARGET_PER_CATEGORY]
+            # Deduplikacja
+            unique_examples = {}
+
+            for example in examples_by_combo[combo][dataset_name]:
+                key = (
+                    example["track_name"],
+                    example["segment_start_s"],
+                )
+
+                unique_examples[key] = example
+
+            examples = list(unique_examples.values())
+            available_count += len(examples)
+            
+            random.shuffle(examples)
+
+            selected_by_split[dataset_name] = examples[
+                :desired_counts[dataset_name]
+            ]
 
         category_name = " + ".join(combo)
 
+        selected_examples = [
+            (dataset_name, example)
+            for dataset_name in ("train", "validation", "test")
+            for example in selected_by_split[dataset_name]
+        ]
+
         category_summary.append({
             "kombinacja": category_name,
-            "dostepne_fragmenty": len(examples),
+            "dostepne_fragmenty": available_count,
             "zaplanowane_przyklady": len(selected_examples),
         })
 
-        for example in selected_examples:
+        for dataset_name, example in selected_examples:
             track_name = example["track_name"]
             segment_start_s = example["segment_start_s"]
 
@@ -556,6 +650,7 @@ def create_generation_plan():
 
             row = {
                 "output_file": filename,
+                "dataset": dataset_name,
                 "track_name": track_name,
                 "segment_start_s": segment_start_s,
                 "combination": category_name,
@@ -571,6 +666,7 @@ def create_generation_plan():
     # Zapis planu generowania.
     base_columns = [
         "output_file",
+        "dataset",
         "track_name",
         "segment_start_s",
         "combination",
@@ -614,6 +710,7 @@ def generate_combinations_audio():
 
     metadata_columns = {
         "output_file",
+        "dataset",
         "track_name",
         "segment_start_s",
         "combination",
@@ -667,18 +764,20 @@ def generate_combinations_audio():
             subtype="PCM_16",
         )
 
-        label_row = {"audio_file": row["output_file"]}
+        label_row = {
+            "audio_file": row["output_file"],
+            "dataset": row["dataset"],
+        }
 
         for instrument in instruments:
             label_row[instrument] = int(row[instrument] == "1")
 
         label_rows.append(label_row)
-        print(f"Wygenerowano: {row['output_file']}")
 
     with open(LABELS_CSV, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["audio_file"] + instruments,
+            fieldnames=["audio_file", "dataset"] + instruments,
         )
         writer.writeheader()
         writer.writerows(label_rows)
@@ -687,8 +786,6 @@ def generate_combinations_audio():
     print(f"Zapisano etykiety: {LABELS_CSV}")
 
 # 8. Dodawanie białego szumu
-
-
 def add_white_noise():
 
     NOISE_DIR.mkdir(parents=True, exist_ok=True)
@@ -769,64 +866,62 @@ def create_dataset():
         for row in label_rows
     }
 
-    groups = {}
-
-    for row in plan_rows:
-        combination = row["combination"]
-        groups.setdefault(combination, []).append(row)
-
-    train_rows = []
-    validation_rows = []
-    test_rows = []
-
-    for combination, rows in groups.items():
-        indices = list(range(len(rows)))
-        random.shuffle(indices)
-
-        shuffled_rows = [rows[i] for i in indices]
-
-        n = len(shuffled_rows)
-        n_train = int(round(n * TRAIN_RATIO))
-        n_validation = int(round(n * VALIDATION_RATIO))
-
-        train_rows.extend(shuffled_rows[:n_train])
-
-        validation_rows.extend(
-            shuffled_rows[n_train:n_train + n_validation]
-        )
-
-        test_rows.extend(
-            shuffled_rows[n_train + n_validation:]
-        )
-
-    random.shuffle(train_rows)
-    random.shuffle(validation_rows)
-    random.shuffle(test_rows)
-
     datasets = [
-        ("train", TRAIN_DIR, train_rows),
-        ("validation", VALIDATION_DIR, validation_rows),
-        ("test", TEST_DIR, test_rows),
+        ("train", TRAIN_DIR),
+        ("validation", VALIDATION_DIR),
+        ("test", TEST_DIR),
     ]
 
     all_label_rows = []
 
-    for dataset_name, dataset_dir, rows in datasets:
+    for row in plan_rows:
 
-        for row in rows:
-            audio_file = row["output_file"]
+        dataset_name = row["dataset"]
 
-            source_path = NOISE_DIR / audio_file
-            destination_path = dataset_dir / audio_file
+        dataset_dir = {
+            "train": TRAIN_DIR,
+            "validation": VALIDATION_DIR,
+            "test": TEST_DIR,
+        }[dataset_name]
 
-            destination_path.write_bytes(source_path.read_bytes())
+        audio_file = row["output_file"]
 
-            label = labels_by_file[audio_file].copy()
+        source_path = NOISE_DIR / audio_file
+        destination_path = dataset_dir / audio_file
 
-            all_label_rows.append({
-                "dataset": dataset_name,
-                **label,
-            })
+        destination_path.write_bytes(source_path.read_bytes())
+
+        label = labels_by_file[audio_file].copy()
+
+        all_label_rows.append(label)
+
+    noise_files = sorted(NOISE_DIR.glob("Track00000_*.flac"))
+
+    for i, noise_path in enumerate(noise_files):
+        dataset_name = (
+            "train" if i < len(noise_files) * TRAIN_RATIO
+            else "validation" if i < len(noise_files) * (TRAIN_RATIO + VALIDATION_RATIO)
+            else "test"
+        )
+
+        dataset_dir = {
+            "train": TRAIN_DIR,
+            "validation": VALIDATION_DIR,
+            "test": TEST_DIR,
+        }[dataset_name]
+
+        shutil.copy2(noise_path, dataset_dir / noise_path.name)
+
+        noise_label = {
+            "audio_file": noise_path.name,
+            "dataset": dataset_name,
+        }
+
+        for instrument in label_columns:
+            if instrument not in ("audio_file", "dataset"):
+                noise_label[instrument] = 0
+
+        all_label_rows.append(noise_label)
 
     with open(
         DATASET_DIR / "etykiety.csv",
@@ -837,29 +932,33 @@ def create_dataset():
 
         writer = csv.DictWriter(
             f,
-            fieldnames=["dataset"] + label_columns,
+            fieldnames=label_columns
         )
 
         writer.writeheader()
         writer.writerows(all_label_rows)
 
-    total = len(plan_rows)
+    total = len(all_label_rows)
 
     print(f"Wszystkie nagrania: {total}")
 
-    for dataset_name, dataset_dir, rows in datasets:
+    for dataset_name, dataset_dir in datasets:
 
-        percentage = len(rows) / total * 100 if total else 0
+        count = sum(
+            row["dataset"] == dataset_name
+            for row in all_label_rows
+        )
+
+        percentage = count / total * 100 if total else 0
 
         print(
-            f"{dataset_name}: {len(rows)} "
+            f"{dataset_name}: {count} "
             f"({percentage:.2f}%)"
         )
 
         print(f"Folder: {dataset_dir}")
 
     print(f"Plik etykiet: {DATASET_DIR / 'etykiety.csv'}")
-
 
 # Kontrola parametrów poprzedniego uruchomienia
  
@@ -900,10 +999,9 @@ def remove_directory(directory):
     if directory.exists():
         shutil.rmtree(directory)
 
-# 
+# Główna funkcja generowania danych
 
-
-def generate_autio(
+def generate_audio(
     SELECTED_INSTRUMENTS,
     SEGMENT_LENGTH,
     ENERGY_THRESHOLD,
@@ -932,8 +1030,6 @@ def generate_autio(
         if NOISE_LEVEL == 0
         else BASE_DIR / "noisy_sounds"
     )
-
-    random.seed(2137)
 
     state = load_pipeline_state()
 
@@ -1031,6 +1127,9 @@ def generate_autio(
     combinations_parameters = (
         tuple(instruments),
         TARGET_PER_CATEGORY,
+        TRAIN_RATIO,
+        VALIDATION_RATIO,
+        TEST_RATIO,
     )
 
     combinations_rebuilt = (
@@ -1050,7 +1149,7 @@ def generate_autio(
         remove_directory(COMBINATIONS_DIR)
         COMBINATIONS_DIR.mkdir(parents=True)
 
-        print("Tworzenie planu generowania...")
+        print("Tworzenie planu generowania.")
         create_generation_plan()
 
         generate_combinations_audio()
@@ -1065,7 +1164,7 @@ def generate_autio(
         NOISE_DIR = COMBINATIONS_DIR
 
     else:
-        noise_parameters = (NOISE_LEVEL,)
+        noise_parameters = (NOISE_LEVEL, TARGET_PER_CATEGORY)
 
         combination_files = list(
             COMBINATIONS_DIR.glob("*.flac")
@@ -1097,6 +1196,7 @@ def generate_autio(
         TRAIN_RATIO,
         VALIDATION_RATIO,
         TEST_RATIO,
+        NOISE_LEVEL,
     )
 
     dataset_rebuilt = (

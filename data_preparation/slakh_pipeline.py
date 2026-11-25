@@ -36,7 +36,7 @@ def main():
             "TEST_RATIO": float(row["TEST_RATIO"]),
         }
 
-        prep.generate_autio(**audio_config)
+        prep.generate_audio(**audio_config)
 
         output_dir.mkdir(parents=True)
 
