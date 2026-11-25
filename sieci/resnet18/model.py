@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-class Resnet(nn.Module):
+class Resnet18(nn.Module):
 
     def __init__(self, dropout=0.3, weights_type="default", weights_path=None):
         super().__init__()
