@@ -3,10 +3,14 @@ venv/
 .venv/
 env/
 
-# Pamięć podręczna kompilatora i notatników
+# Python cache
+__pycache__/
 **/__pycache__/
-*.pyc
+*.py[cod]
+
+# Jupyter
 .ipynb_checkpoints/
+**/.ipynb_checkpoints/
 
 # macOS
 .DS_Store

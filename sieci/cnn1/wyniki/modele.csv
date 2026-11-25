@@ -1,3 +1,0 @@
-Learning_ID,Dataset,Model,Batch size,Learning rate,Dropout 2,Dropout 3,Threshold,Best epoch,Best val loss,Training time [min]
-1,1_1,CNN1,32,0.0008,0.1,0.3,0.8,99,0.2478249653257133,87.06585352846498
-1,1_1,CNN1,32,0.0008,0.1,0.3,0.8,99,0.2478249653257133,87.06585352846498

@@ -3,17 +3,28 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+# Biblioteki
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
 class InstrumentCNN(nn.Module):
-    """
-    Architektura opiera się na jednej sieci CNN przetwarzającej
-    cały mel-spektrogram. Na wyjściu sieć zwraca wektor
-    7 wartości, z których każda odpowiada jednemu instrumentowi.
-    """
-    def __init__(self, dropout2, dropout3):
+
+    def __init__(
+        self,
+        dropout2=0.3,
+        dropout3=0.3,
+        weights_type="default",
+        weights_path=None
+    ):
         super().__init__()
-        self.conv1 = nn.Conv2d(1,32,3,1)
-        self.conv2 = nn.Conv2d(32,64,3,1)
-        self.conv3 = nn.Conv2d(64,128,3,1)
+
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv3 = nn.Conv2d(64, 128, 3, 1)
+
         self.dropout2 = nn.Dropout2d(dropout2)
         self.dropout3 = nn.Dropout2d(dropout3)
 
@@ -21,7 +32,13 @@ class InstrumentCNN(nn.Module):
 
         self.fc3 = nn.Linear(128, 7)
 
+        if weights_type == "custom":
+            checkpoint = torch.load(weights_path, map_location="cpu")
+
+            self.load_state_dict(checkpoint)
+
     def forward(self, x):
+
         x = self.conv1(x)
         x = F.relu(x)
 
