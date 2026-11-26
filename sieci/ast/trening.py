@@ -1,6 +1,7 @@
 import torch
 from pathlib import Path
-
+from tqdm.auto import tqdm
+from torch.amp import autocast, GradScaler
 
 # Wybór urządzenia obliczeniowego
 def get_device():
@@ -31,24 +32,35 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
     train_losses = []
     val_losses = []
 
+    use_amp = device.type =="cuda"
+    scaler = GradScaler("cuda", enabled=use_amp)
+
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
 
+        # Pasek postępu
+        train_bar = tqdm(train_loader,
+                         desc=f"Epoka {epoch + 1}/{epochs} [Train]",
+                         leave=False)
+
         # Pętla treningowa.
-        for X, y in train_loader:
+        for X, y in train_bar:
             X = X.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
 
             optimizer.zero_grad(set_to_none=True)
 
-            outputs = model(X)
-            loss = criterion(outputs, y)
+            with autocast("cuda", enabled=use_amp):
+                outputs = model(X)
+                loss = criterion(outputs, y)
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             train_loss += loss.detach() * X.size(0)
+            train_bar.set_postfix(loss=f"{loss.item():.4f}")
 
         train_loss = train_loss.item() / len(train_loader.dataset)
 
@@ -61,8 +73,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, e
                 X = X.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
 
-                outputs = model(X)
-                loss = criterion(outputs, y)
+
+                with autocast("cuda", enabled=use_amp):
+                    outputs=model(X)
+                    loss= criterion(outputs, y)
 
                 val_loss += loss.detach() * X.size(0)
 

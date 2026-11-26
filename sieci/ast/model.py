@@ -66,7 +66,7 @@ class InstrumentASTPretrained(nn.Module):
     """
 
     MODEL_NAME = "MIT/ast-finetuned-audioset-10-10-0.4593"
-    MAX_LENGTH = 1024
+    MAX_LENGTH = 450
 
     def __init__(self, dropout=0.1):
         super().__init__()
@@ -75,6 +75,7 @@ class InstrumentASTPretrained(nn.Module):
         self.model = ASTForAudioClassification.from_pretrained(
             self.MODEL_NAME,
             num_labels=7,
+            max_length = self.MAX_LENGTH,
             problem_type="multi_label_classification",
             ignore_mismatched_sizes=True
         )
