@@ -18,7 +18,14 @@ class InstrumentAST(nn.Module):
         (batch_size, 7)
     """
 
-    def __init__(self, num_mel_bins, max_length, dropout=0.1):
+    def __init__(self, num_mel_bins,
+                max_length,
+                dropout=0.1,
+                hidden_size=384,
+                num_hidden_layers=6,
+                num_attention_heads=6,
+                intermediate_size=1536
+                ):
         super().__init__()
 
         # Konfiguracja architektury AST.
@@ -29,10 +36,10 @@ class InstrumentAST(nn.Module):
             patch_size=16,
             frequency_stride=10,
             time_stride=10,
-            hidden_size=384,
-            num_hidden_layers=6,
-            num_attention_heads=6,
-            intermediate_size=1536,
+            hidden_size=hidden_size,
+            num_hidden_layers=num_hidden_layers,
+            num_attention_heads=num_attention_heads,
+            intermediate_size=intermediate_size,
             hidden_dropout_prob=dropout,
             attention_probs_dropout_prob=dropout,
             problem_type="multi_label_classification"
