@@ -1,0 +1,2 @@
+Learning_ID;Dataset;Model;Batch size;Learning rate;Weight decay;Dropout;Kernel size;Stride;Padding;Maxpool;Best epoch;Best val loss;Training time [min]
+1;1_3;resnet18-variant;16;0.001;0;0.1;3;1;1;False;11;0.251907180425689;56.834218150000865
