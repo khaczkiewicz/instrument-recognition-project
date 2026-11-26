@@ -16,7 +16,7 @@ def get_spectrograms_dir(dataset):
         raise FileNotFoundError(f"Brak danych w SPECTROGRAMS_DIR: {path}")
 
     candidates = [
-        Path(r"D:\spectrograms"),
+        Path(r"C:\spectrograms"),
         Path(__file__).resolve().parents[1] / "spectrograms",
     ]
     for root in candidates:
