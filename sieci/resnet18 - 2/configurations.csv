@@ -1,4 +1,6 @@
 dataset;model_name;epochs;patience;batch_size;learning_rate;weight_decay;dropout;weights_type;weights_path;kernel_size;stride;padding;maxpool
+1_3;resnet18-variant;100;10;16;0.001;0;0.1;default;;3;1;1;False
+1_3;resnet18-variant;100;10;16;0.001;0.0001;0.1;default;;3;1;1;True
 1_3;resnet18-variant;100;10;8;0.001;0.0001;0.3;default;;3;1;1;True
 1_3;resnet18-variant;100;10;32;0.001;0.0001;0.3;default;;3;1;1;True
 1_3;resnet18-variant;100;10;64;0.001;0.0001;0.3;default;;3;1;1;True
